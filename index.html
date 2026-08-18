@@ -1,0 +1,925 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>스즈메의 문단속 : 모두의 이야기 (YUL의 문단속)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; }
+        
+        body, html {
+            width: 100%; height: 100%; overflow: hidden;
+            font-family: 'Noto Sans KR', sans-serif;
+            background: #090a12; color: #fff;
+        }
+
+        #game-frame {
+            position: relative; width: 100%; height: 100%;
+            display: flex; flex-direction: column; justify-content: space-between;
+            background: linear-gradient(160deg, #0a0e1a 0%, #1a1b35 35%, #2b1b36 70%, #4a2040 100%);
+            overflow: hidden;
+        }
+
+        /* 첫 화면 타이틀 (scene_00) */
+        #title-screen {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 1000; display: flex; flex-direction: column; justify-content: flex-end; align-items: center;
+            background: #090a12; padding-bottom: 40px;
+            transition: opacity 0.5s ease;
+        }
+
+        .title-bg-img {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            object-fit: cover; z-index: 1;
+        }
+
+        .title-gradient-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(180deg, rgba(9,10,18,0.1) 0%, rgba(9,10,18,0.4) 60%, rgba(9,10,18,0.92) 100%);
+            z-index: 2; pointer-events: none;
+        }
+
+        .title-controls {
+            position: relative; z-index: 5; display: flex; flex-direction: column; align-items: center; gap: 14px;
+        }
+
+        .set-selector {
+            background: rgba(15, 23, 42, 0.85); border: 1px solid #ffd166; color: #ffd166;
+            font-family: inherit; font-size: 0.9em; font-weight: 700; padding: 6px 16px; border-radius: 15px; outline: none;
+        }
+
+        .start-btn {
+            background: linear-gradient(135deg, #ffd166 0%, #f4a261 100%);
+            color: #0d1b2a; font-family: inherit; font-size: 1.15em; font-weight: 800;
+            padding: 14px 40px; border-radius: 30px; border: none; cursor: pointer;
+            box-shadow: 0 0 25px rgba(255, 209, 102, 0.6);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .start-btn:active { transform: scale(0.96); }
+
+        #header-bar {
+            position: absolute; top: 15px; left: 20px; right: 20px;
+            display: flex; justify-content: space-between; align-items: center; z-index: 10;
+        }
+
+        .title-badge {
+            background: rgba(15, 23, 42, 0.65); backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 215, 0, 0.3); border-radius: 20px;
+            padding: 6px 16px; font-size: 0.85em; font-weight: 700; color: #ffd166;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3); pointer-events: none;
+        }
+
+        /* 일러스트 표시 영역 */
+        #illustration-area {
+            flex: 1; display: flex; align-items: center; justify-content: center;
+            padding: 55px 15px 15px 15px; pointer-events: none; z-index: 2;
+        }
+
+        .illustration-card {
+            background: rgba(18, 22, 41, 0.55); backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.12); border-top: 1px solid rgba(255, 209, 102, 0.4);
+            border-radius: 16px; padding: 10px; max-width: 800px; width: 100%; height: 55vh; text-align: center;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            overflow: hidden; position: relative;
+        }
+
+        .scene-image {
+            max-width: 100%; max-height: 100%; width: auto; height: auto;
+            object-fit: contain; border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            display: block; margin: auto;
+            animation: fadeIn 0.35s ease-out;
+        }
+
+        .fallback-box {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            padding: 20px; color: #e2e8f0; font-size: 0.95em; line-height: 1.6; word-break: keep-all;
+        }
+
+        .fallback-tag {
+            background: rgba(255, 209, 102, 0.2); border: 1px solid #ffd166; color: #ffd166;
+            padding: 3px 12px; border-radius: 15px; font-size: 0.8em; margin-bottom: 10px; font-weight: bold;
+        }
+
+        /* 하단 대화창 */
+        #dialog-area {
+            height: 215px; background: linear-gradient(180deg, rgba(13, 17, 32, 0.88) 0%, rgba(8, 10, 20, 0.96) 100%);
+            backdrop-filter: blur(16px); border-top: 2px solid rgba(255, 209, 102, 0.6);
+            padding: 18px 22px; position: relative; display: flex; flex-direction: column; justify-content: space-between;
+            z-index: 5; cursor: pointer;
+        }
+
+        #speaker-badge {
+            display: inline-block; align-self: flex-start; background: rgba(255, 209, 102, 0.15);
+            border: 1px solid #ffd166; color: #ffd166; font-size: 0.9em; font-weight: 700;
+            padding: 4px 14px; border-radius: 6px; margin-bottom: 8px;
+        }
+
+        #dialog-text { font-size: 1.06em; line-height: 1.6; color: #f8fafc; word-break: keep-all; }
+
+        #nav-controls {
+            display: flex; justify-content: flex-end; align-items: center; gap: 10px;
+            margin-top: 6px;
+        }
+
+        .nav-btn {
+            background: rgba(255, 209, 102, 0.1); border: 1px solid rgba(255, 209, 102, 0.4);
+            color: #ffd166; font-family: inherit; font-size: 0.85em; font-weight: 700;
+            padding: 6px 16px; border-radius: 20px; cursor: pointer; transition: all 0.2s ease;
+        }
+
+        .nav-btn:hover, .nav-btn:active {
+            background: #ffd166; color: #0d1b2a; border-color: #ffd166;
+        }
+
+        .nav-btn:disabled {
+            opacity: 0.3; cursor: not-allowed; border-color: rgba(255,255,255,0.2); color: #888;
+            background: transparent;
+        }
+
+        /* 퀘스트 팝업 */
+        #quest-overlay {
+            display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(8, 10, 20, 0.88); backdrop-filter: blur(12px); z-index: 100;
+            align-items: center; justify-content: center; padding: 20px; cursor: default;
+        }
+
+        .quest-card {
+            background: linear-gradient(145deg, rgba(26, 27, 53, 0.95) 0%, rgba(15, 16, 32, 0.98) 100%);
+            border: 2px solid #ffd166; border-radius: 20px; padding: 28px 24px; max-width: 600px; width: 100%; text-align: center;
+        }
+
+        .quest-problem { font-size: 1.1em; margin-bottom: 22px; line-height: 1.6; color: #f1f5f9; word-break: keep-all; background: rgba(255, 255, 255, 0.04); padding: 16px; border-radius: 12px; }
+        .choice-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .choice-btn { background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 209, 102, 0.3); color: #f8fafc; padding: 15px 10px; font-size: 1em; font-weight: 600; border-radius: 10px; cursor: pointer; }
+        .choice-btn:active { background: #ffd166; color: #0d1b2a; }
+        #feedback-msg { margin-top: 16px; font-size: 0.95em; font-weight: 700; min-height: 24px; }
+        
+        .clock-container { margin: 10px auto 20px auto; width: 140px; height: 140px; }
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.98); } to { opacity: 1; transform: scale(1); } }
+    </style>
+</head>
+<body>
+
+<div id="game-frame">
+    <!-- 첫 화면 타이틀 (scene_00) -->
+    <div id="title-screen">
+        <img src="scene_00.png" class="title-bg-img" alt="Title Background" onerror="this.style.display='none'">
+        <div class="title-gradient-overlay"></div>
+        <div class="title-controls">
+            <select id="set-select" class="set-selector">
+                <option value="random">🎲 무작위 세트 도전</option>
+                <option value="0">📖 세트 1 (입문 코스)</option>
+                <option value="1">📖 세트 2 (기초 코스)</option>
+                <option value="2">📖 세트 3 (응용 코스)</option>
+                <option value="3">📖 세트 4 (발전 코스)</option>
+                <option value="4">📖 세트 5 (심화 코스)</option>
+            </select>
+            <button class="start-btn" onclick="startGame()">모험 시작하기 🚪✨</button>
+        </div>
+    </div>
+
+    <!-- 상단 헤더 바 -->
+    <div id="header-bar">
+        <div class="title-badge" id="ep-badge">🚪 PROLOGUE</div>
+    </div>
+
+    <!-- 중앙 일러스트 영역 -->
+    <div id="illustration-area">
+        <div class="illustration-card" id="card-box"></div>
+    </div>
+
+    <!-- 하단 대화창 -->
+    <div id="dialog-area" onclick="handleNext(event)">
+        <div>
+            <div id="speaker-badge">YUL (독백)</div>
+            <div id="dialog-text">대사를 불러오는 중...</div>
+        </div>
+        
+        <div id="nav-controls">
+            <button class="nav-btn" id="prev-btn" onclick="handlePrev(event)">◀ 이전</button>
+            <button class="nav-btn" id="next-btn" onclick="handleNext(event)">다음 ▶</button>
+        </div>
+    </div>
+
+    <!-- 퀘스트 팝업 모달 -->
+    <div id="quest-overlay" onclick="event.stopPropagation()">
+        <div class="quest-card">
+            <div id="clock-box" class="clock-container" style="display:none;"></div>
+            <div id="quest-problem" class="quest-problem">문제를 불러오는 중...</div>
+            <div class="choice-grid">
+                <button class="choice-btn" onclick="checkAnswer(0)" id="btn0"></button>
+                <button class="choice-btn" onclick="checkAnswer(1)" id="btn1"></button>
+                <button class="choice-btn" onclick="checkAnswer(2)" id="btn2"></button>
+                <button class="choice-btn" onclick="checkAnswer(3)" id="btn3"></button>
+            </div>
+            <div id="feedback-msg"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 총 40문제 5개 독립 세트 데이터
+    const problemSets = [
+        // [세트 1 - 입문]
+        [
+            {
+                problem: "지붕 위에 10개씩 묶음 3개와 낱개 4개의 태엽이 있습니다. 모두 몇 개일까요?",
+                choices: ["① 30개", "② 34개", "③ 43개", "④ 40개"], answer: 1,
+                correctMsg: "✨ 완벽해 YUL! 34개의 태엽을 정확히 밝혀내 첫 번째 결계가 발동했어!",
+                wrongMsg: "⚠️ YUL! 지붕과 연못가 태엽 개수를 정확히 세어야 결계 파동이 발동해!"
+            },
+            {
+                problem: "지붕 위의 34개와 연못가의 20개를 합치면 모두 몇 개일까요?",
+                choices: ["① 44개", "② 50개", "③ 54개", "④ 64개"], answer: 2,
+                correctMsg: "✨ 대단해! 54개의 결계 파동이 연못까지 감싸 안기 시작했어!",
+                wrongMsg: "⚠️ YUL! 지붕과 연못가 태엽 개수를 다시 정확히 합쳐보자!"
+            },
+            {
+                clock: { hours: 5, minutes: 40 },
+                problem: "[시계 암호 1/3] YUL의 손목시계가 위와 같습니다. 현재 시각은 몇 시 몇 분일까요?",
+                choices: ["① 5시 40분", "② 6시 40분", "③ 5시 08분", "④ 8시 25분"], answer: 0,
+                correctMsg: "✨ 정확해! 5시 40분을 맞췄어. 데드라인 6시 정각까지 20분 남았어!",
+                wrongMsg: "⚠️ YUL! 시침과 분침 위치를 다시 확인해봐! 데드라인이 얼마 남지 않았어!"
+            },
+            {
+                clock: { hours: 6, minutes: 12 },
+                problem: "[시계 암호 2/3] 칠판에 그려진 다이진의 암호 시계입니다. 몇 시 몇 분일까요?",
+                choices: ["① 6시 12분", "② 12시 06분", "③ 6시 02분", "④ 2시 30분"], answer: 0,
+                correctMsg: "✨ 완벽해 YUL! 다이진의 암호 시각 6시 12분을 정확히 해독했어!",
+                wrongMsg: "⚠️ YUL! 긴바늘의 작은 눈금 한 칸이 1분이야. 다시 읽어보자!"
+            },
+            {
+                clock: { hours: 3, minutes: 25 },
+                problem: "[시계 암호 3/3] 폐교 정문 시계탑의 시각입니다. 봉인을 해제할 시각은?",
+                choices: ["① 3시 25분", "② 5시 15분", "③ 3시 05분", "④ 4시 25분"], answer: 0,
+                correctMsg: "✨ 3연속 시계 암호 완벽 해독 성공! 폐교 봉인 구역의 문이 열린다!",
+                wrongMsg: "⚠️ YUL! 짧은바늘과 긴바늘을 다시 유심히 봐줘! 마지막 시계 암호야!"
+            },
+            {
+                problem: "관람차의 균형을 맞추려 합니다. 24kg의 무게추를 3칸에 똑같이 나누면 한 칸에 몇 kg일까요?",
+                choices: ["① 6kg", "② 8kg", "③ 9kg", "④ 12kg"], answer: 1,
+                correctMsg: "✨ 수평 균형 맞추기 성공! 철근 8개의 무게로 관람차가 기울지 않아!",
+                wrongMsg: "⚠️ YUL! 관람차가 심하게 기울고 있어! 24를 3으로 똑같이 나누어 봐!"
+            },
+            {
+                problem: "지하 문의 봉인 각도가 직각(90°)에서 35°만큼 더 기울어졌습니다. 전체 각도는?",
+                choices: ["① 115°", "② 120°", "③ 125°", "④ 135°"], answer: 2,
+                correctMsg: "✨ 각도 계산 완료! 125°의 공간 균열을 완벽하게 바로잡았어!",
+                wrongMsg: "⚠️ YUL! 직각 90도에 35도를 더해 공간 각도를 다시 계산하자!"
+            },
+            {
+                problem: "지름이 20m인 저세상 마법진의 반지름은 몇 m일까요?",
+                choices: ["① 10m", "② 15m", "③ 20m", "④ 40m"], answer: 0,
+                correctMsg: "✨ 마법진의 중심과 YUL의 열쇠가 완벽히 통했다! 문의 봉인이 시작된다!",
+                wrongMsg: "⚠️ YUL! 반지름은 지름의 절반이야. 다시 계산해 봐!"
+            }
+        ],
+
+        // [세트 2 - 기초]
+        [
+            {
+                problem: "지붕 위에 10개씩 묶음 4개와 낱개 7개의 태엽 파편이 있습니다. 모두 몇 개일까요?",
+                choices: ["① 40개", "② 44개", "③ 47개", "④ 74개"], answer: 2,
+                correctMsg: "✨ 정확해 YUL! 47개의 태엽 파편 에너지를 모두 모았어!",
+                wrongMsg: "⚠️ YUL! 10개씩 묶음 4개와 낱개 7개를 차근차근 더해보자!"
+            },
+            {
+                problem: "전체 50개의 불꽃 태엽 중 18개를 결계로 흡수했습니다. 남은 태엽은 몇 개일까요?",
+                choices: ["① 28개", "② 32개", "③ 38개", "④ 42개"], answer: 1,
+                correctMsg: "✨ 남은 32개의 에너지를 모두 정화했어! 결계 파동이 안정됐어!",
+                wrongMsg: "⚠️ YUL! 50에서 18을 빼서 남은 태엽 수를 다시 확인하자!"
+            },
+            {
+                clock: { hours: 2, minutes: 50 },
+                problem: "[시계 암호 1/3] YUL의 손목시계가 위와 같습니다. 현재 시각은 몇 시 몇 분일까요?",
+                choices: ["① 2시 50분", "② 3시 50분", "③ 2시 10분", "④ 10시 10분"], answer: 0,
+                correctMsg: "✨ 2시 50분 확인 완료! 스쿠터 출발 시각에 맞췄어!",
+                wrongMsg: "⚠️ YUL! 시침이 3에 가까워도 아직 2시야! 분침을 다시 봐줘!"
+            },
+            {
+                clock: { hours: 4, minutes: 18 },
+                problem: "[시계 암호 2/3] 칠판에 그려진 다이진의 암호 시계입니다. 몇 시 몇 분일까요?",
+                choices: ["① 4시 15분", "② 4시 18분", "③ 3시 18분", "④ 4시 20분"], answer: 1,
+                correctMsg: "✨ 4시 18분 완벽 해독! 다이진의 흔적을 발견했어!",
+                wrongMsg: "⚠️ YUL! 3에서 3칸 더 간 눈금을 세어 분을 읽어봐!"
+            },
+            {
+                clock: { hours: 8, minutes: 35 },
+                problem: "[시계 암호 3/3] 폐교 정문 시계탑의 시각입니다. 봉인을 해제할 시각은?",
+                choices: ["① 8시 07분", "② 7시 35분", "③ 8시 35분", "④ 9시 35분"], answer: 2,
+                correctMsg: "✨ 3연속 시계 암호 해독 완료! 강당 문이 활짝 열렸어!",
+                wrongMsg: "⚠️ YUL! 8과 9 사이를 가리키는 시침과 7을 가리키는 분침을 확인해줘!"
+            },
+            {
+                problem: "마법진 원의 2/5가 깨졌습니다. 온전하게 남아있는 마법진의 비율은 얼마일까요?",
+                choices: ["① 1/5", "② 2/5", "③ 4/5", "④ 3/5"], answer: 3,
+                correctMsg: "✨ 남아있는 3/5의 힘을 모아 마법진을 완벽히 복구했어!",
+                wrongMsg: "⚠️ YUL! 전체 1(5/5)에서 깨진 2/5를 빼보자!"
+            },
+            {
+                problem: "삼각형 모양의 지하 결계석에서 두 각이 각각 60°, 70°입니다. 나머지 한 각의 크기는?",
+                choices: ["① 40°", "② 50°", "③ 60°", "④ 130°"], answer: 1,
+                correctMsg: "✨ 완벽해! 나머지 한 각 50°를 찾아 결계석이 고정되었어!",
+                wrongMsg: "⚠️ YUL! 삼각형의 세 각의 합은 180도야. 다시 계산해 보자!"
+            },
+            {
+                problem: "저세상 문을 둘러싼 정사각형 결계의 한 변이 6m입니다. 이 결계의 둘레는 몇 m일까요?",
+                choices: ["① 12m", "② 18m", "③ 24m", "④ 36m"], answer: 2,
+                correctMsg: "✨ 둘레 24m의 황금 결계가 문을 둘러싸며 봉인이 완성됐어!",
+                wrongMsg: "⚠️ YUL! 정사각형은 4변의 길이가 모두 같아. 6m를 4번 더해봐!"
+            }
+        ],
+
+        // [세트 3 - 응용]
+        [
+            {
+                problem: "태엽 23개와 39개를 모아 하나의 결계로 합치려 합니다. 총 몇 개일까요?",
+                choices: ["① 52개", "② 60개", "③ 62개", "④ 72개"], answer: 2,
+                correctMsg: "✨ 62개의 태엽 파편이 하나로 뭉쳐 강력한 방어막이 형성됐어!",
+                wrongMsg: "⚠️ YUL! 23과 39를 다시 차근차근 더해보자! 받아올림에 주의해!"
+            },
+            {
+                problem: "열쇠 구멍의 빛 패턴이 [빨강, 노랑, 파랑, 빨강, 노랑, ?] 순으로 깜빡입니다. 다음 색은?",
+                choices: ["① 빨강", "② 파랑", "③ 노랑", "④ 초록"], answer: 1,
+                correctMsg: "✨ 파란빛 홈에 열쇠가 맞아떨어지며 결계가 풀렸어!",
+                wrongMsg: "⚠️ YUL! [빨강-노랑-파랑] 세 가지 색이 반복되고 있어!"
+            },
+            {
+                clock: { hours: 7, minutes: 45 },
+                problem: "[시계 암호 1/3] YUL의 손목시계가 위와 같습니다. 현재 시각은 몇 시 몇 분일까요?",
+                choices: ["① 8시 45분", "② 7시 45분", "③ 7시 09분", "④ 9시 35분"], answer: 1,
+                correctMsg: "✨ 7시 45분 확인! 소타 오빠와 함께 이동을 서두르자!",
+                wrongMsg: "⚠️ YUL! 시침이 8에 아주 가깝지만 아직 8시 전이야!"
+            },
+            {
+                clock: { hours: 11, minutes: 8 },
+                problem: "[시계 암호 2/3] 칠판에 그려진 다이진의 암호 시계입니다. 몇 시 몇 분일까요?",
+                choices: ["① 11시 08분", "② 11시 40분", "③ 12시 08분", "④ 8시 55분"], answer: 0,
+                correctMsg: "✨ 11시 8분 완벽 해독! 다이진의 함정을 통과했어!",
+                wrongMsg: "⚠️ YUL! 분침이 가리키는 작은 눈금 8칸을 확인해줘!"
+            },
+            {
+                clock: { hours: 1, minutes: 22 },
+                problem: "[시계 암호 3/3] 폐교 정문 시계탑의 시각입니다. 봉인을 해제할 시각은?",
+                choices: ["① 1시 20분", "② 2시 22분", "③ 1시 04분", "④ 1시 22분"], answer: 3,
+                correctMsg: "✨ 시계탑의 모든 암호가 풀리며 강당 봉인문이 열렸다!",
+                wrongMsg: "⚠️ YUL! 4에서 2칸 더 간 위치를 읽어줘!"
+            },
+            {
+                problem: "빗물 수위가 1시간에 15cm씩 차오릅니다. 4시간 동안 차오른 전체 수위는 몇 cm일까요?",
+                choices: ["① 60cm", "② 55cm", "③ 50cm", "④ 45cm"], answer: 0,
+                correctMsg: "✨ 수위 60cm 도달 전 배수 마법 발동 성공! 관람차가 안전해졌어!",
+                wrongMsg: "⚠️ YUL! 15cm씩 4번을 곱해 전체 수위를 계산해봐!"
+            },
+            {
+                problem: "평행사변형 모양의 지하 환풍구 밑변이 8m, 높이가 5m입니다. 넓이는 몇 ㎡일까요?",
+                choices: ["① 26㎡", "② 35㎡", "③ 40㎡", "④ 80㎡"], answer: 2,
+                correctMsg: "✨ 넓이 40㎡ 환풍구 개방 완료! 지하 공간의 기압이 정상화됐어!",
+                wrongMsg: "⚠️ YUL! 평행사변형의 넓이는 [밑변 × 높이]야!"
+            },
+            {
+                problem: "반지름이 5cm인 요석 마법진의 넓이를 구하세요. (원주율: 3.14)",
+                choices: ["① 31.4㎠", "② 62.8㎠", "③ 75.5㎠", "④ 78.5㎠"], answer: 3,
+                correctMsg: "✨ 넓이 78.5㎠ 마법진이 활성화되며 요석의 힘이 극대화되었어!",
+                wrongMsg: "⚠️ YUL! 원의 넓이는 [반지름 × 반지름 × 원주율]이야!"
+            }
+        ],
+
+        // [세트 4 - 발전]
+        [
+            {
+                problem: "100개들이 상자 1개, 10개들이 5개, 낱개 8개의 에너지가 모였습니다. 총 에너지는?",
+                choices: ["① 148", "② 158", "③ 168", "④ 518"], answer: 1,
+                correctMsg: "✨ 에너지 수치 158 완벽 충전! 규슈의 결계가 완성되고 있어!",
+                wrongMsg: "⚠️ YUL! 백의 자리, 십의 자리, 일의 자리를 차례로 합쳐보자!"
+            },
+            {
+                problem: "소타가 72걸음, 스즈메가 45걸음을 걸었습니다. 소타는 스즈메보다 몇 걸음 더 걸었을까요?",
+                choices: ["① 27걸음", "② 37걸음", "③ 23걸음", "④ 117걸음"], answer: 0,
+                correctMsg: "✨ 27걸음의 거리 차이를 좁혀 소타와 합류 성공!",
+                wrongMsg: "⚠️ YUL! 72에서 45를 빼서 차이를 구해보자!"
+            },
+            {
+                clock: { hours: 9, minutes: 55 },
+                problem: "[시계 암호 1/3] YUL의 손목시계가 위와 같습니다. 현재 시각은 몇 시 몇 분일까요?",
+                choices: ["① 10시 55분", "② 9시 11분", "③ 9시 55분", "④ 11시 45분"], answer: 2,
+                correctMsg: "✨ 9시 55분 확인! 10시 정각 직전 데드라인 돌파!",
+                wrongMsg: "⚠️ YUL! 시침이 10에 거의 닿았지만 아직 9시 55분이야!"
+            },
+            {
+                clock: { hours: 12, minutes: 37 },
+                problem: "[시계 암호 2/3] 칠판에 그려진 다이진의 암호 시계입니다. 몇 시 몇 분일까요?",
+                choices: ["① 12시 37분", "② 1시 37분", "③ 12시 07분", "④ 7시 03분"], answer: 0,
+                correctMsg: "✨ 12시 37분 완벽 해독! 다이진의 비밀 루트 발견!",
+                wrongMsg: "⚠️ YUL! 7에서 2칸 더 간 분침 위치를 읽어줘!"
+            },
+            {
+                clock: { hours: 10, minutes: 14 },
+                problem: "[시계 암호 3/3] 폐교 정문 시계탑의 시각입니다. 봉인을 해제할 시각은?",
+                choices: ["① 10시 10분", "② 10시 14분", "③ 2시 50분", "④ 10시 15분"], answer: 1,
+                correctMsg: "✨ 폐교 시계탑 10시 14분 봉인 해제 완료!",
+                wrongMsg: "⚠️ YUL! 긴바늘이 3 직전인 14분을 가리키고 있어!"
+            },
+            {
+                problem: "물 400g에 마법 가루 100g을 녹였습니다. 전체 마법 용액의 농도는 몇 %일까요?",
+                choices: ["① 15%", "② 20%", "③ 25%", "④ 30%"], answer: 1,
+                correctMsg: "✨ 농도 20%의 완벽한 정화수가 완성되어 비구름을 걷어냈어!",
+                wrongMsg: "⚠️ YUL! 전체 용액(물+가루=500g) 중 가루(100g)의 백분율을 구해봐!"
+            },
+            {
+                problem: "가로 6m, 세로 4m, 높이 3m인 지하 공간의 직육면체 부피는 몇 ㎥일까요?",
+                choices: ["① 24㎥", "② 48㎥", "③ 60㎥", "④ 72㎥"], answer: 3,
+                correctMsg: "✨ 부피 72㎥의 거대한 지하 문 봉인 공간이 안정화됐어!",
+                wrongMsg: "⚠️ YUL! 직육면체 부피는 [가로 × 세로 × 높이]야!"
+            },
+            {
+                problem: "저세상 문의 비례식 [2 : 5 = 6 : □] 일 때, □에 들어갈 알맞은 숫자는?",
+                choices: ["① 10", "② 12", "③ 15", "④ 20"], answer: 2,
+                correctMsg: "✨ 비례식 완성! 15의 비율로 영구 결계가 문에 씌워졌어!",
+                wrongMsg: "⚠️ YUL! 전항이 3배(2→6) 커졌으니 후항도 3배(5→?) 커져야 해!"
+            }
+        ],
+
+        // [세트 5 - 심화]
+        [
+            {
+                problem: "태엽 파편 85개 중 의자 수리에 28개, 결계 강화에 19개를 썼습니다. 남은 태엽은?",
+                choices: ["① 36개", "② 38개", "③ 48개", "④ 57개"], answer: 1,
+                correctMsg: "✨ 남은 38개의 태엽 에너지를 문단속에 집중시켰어!",
+                wrongMsg: "⚠️ YUL! 85에서 28을 빼고, 다시 19를 차례로 빼보자!"
+            },
+            {
+                problem: "도형 규칙: [세모 1개, 세모 3개, 세모 5개, ?] 다음에 올 세모의 개수는?",
+                choices: ["① 6개", "② 8개", "③ 7개", "④ 9개"], answer: 2,
+                correctMsg: "✨ 7개의 세모 결계석이 맞물리며 문의 폭주를 멈췄어!",
+                wrongMsg: "⚠️ YUL! 2개씩 늘어나는 홀수 규칙을 찾아봐!"
+            },
+            {
+                clock: { hours: 1, minutes: 52 },
+                problem: "[시계 암호 1/3] YUL의 손목시계가 위와 같습니다. 현재 시각은 몇 시 몇 분일까요?",
+                choices: ["① 1시 52분", "② 2시 52분", "③ 1시 10분", "④ 10시 09분"], answer: 0,
+                correctMsg: "✨ 1시 52분 암호 해독 완료! 치카의 스쿠터로 전속력 돌진!",
+                wrongMsg: "⚠️ YUL! 시침이 2에 가까워도 아직 1시야!"
+            },
+            {
+                clock: { hours: 8, minutes: 43 },
+                problem: "[시계 암호 2/3] 칠판에 그려진 다이진의 암호 시계입니다. 몇 시 몇 분일까요?",
+                choices: ["① 8시 40분", "② 9시 43분", "③ 8시 08분", "④ 8시 43분"], answer: 3,
+                correctMsg: "✨ 8시 43분 완벽 해독! 다이진의 꼬리를 잡았다!",
+                wrongMsg: "⚠️ YUL! 8에서 3칸 더 지난 분침 위치를 확인해봐!"
+            },
+            {
+                clock: { hours: 6, minutes: 29 },
+                problem: "[시계 암호 3/3] 폐교 정문 시계탑의 시각입니다. 봉인을 해제할 시각은?",
+                choices: ["① 6시 25분", "② 6시 29분", "③ 5시 29분", "④ 6시 30분"], answer: 1,
+                correctMsg: "✨ 3연속 시계 암호 클리어! 강당 안 미미즈를 봉인하자!",
+                wrongMsg: "⚠️ YUL! 6 직전인 29분을 가리키고 있어!"
+            },
+            {
+                problem: "3/4m 길이의 결계 밧줄 8도막을 이어 붙였습니다. 전체 밧줄의 총 길이는 몇 m일까요?",
+                choices: ["① 4m", "② 5m", "③ 6m", "④ 8m"], answer: 2,
+                correctMsg: "✨ 길이 6m의 결계 밧줄로 관람차를 묶어 고정 성공!",
+                wrongMsg: "⚠️ YUL! (3/4) × 8 을 약분하여 계산해봐!"
+            },
+            {
+                problem: "정육면체 모양의 요석 받침대 한 모서리가 40cm입니다. 이 받침대의 겉넓이는?",
+                choices: ["① 9600㎠", "② 6400㎠", "③ 1600㎠", "④ 2400㎠"], answer: 0,
+                correctMsg: "✨ 겉넓이 9600㎠ 전체에 요석의 방어막이 씌워졌어!",
+                wrongMsg: "⚠️ YUL! 한 면의 넓이(40×40)에 6개 면을 곱해야 해!"
+            },
+            {
+                problem: "미미즈가 400km의 거리를 2시간 동안 이동했습니다. 미미즈의 시속은 몇 km/h일까요?",
+                choices: ["① 150km/h", "② 200km/h", "③ 250km/h", "④ 800km/h"], answer: 1,
+                correctMsg: "✨ 시속 200km/h의 속도를 따라잡아 미미즈 심장에 요석을 꽂았어!",
+                wrongMsg: "⚠️ YUL! 속력은 [거리 ÷ 시간]이야. 400을 2로 나누어 봐!"
+            }
+        ]
+    ];
+
+    // 전체 33개 씬 시나리오 1:1 매핑
+    const scriptData = [
+        // PROLOGUE (scene_01 ~ scene_04)
+        { 
+            ep: "PROLOGUE", 
+            imgSrc: "scene_01.png", 
+            imgGuide: "어두운 방 안, YUL이 스탠드 불빛 아래 스케치북에 '스즈메의 문단속' 속 낡은 문과 캐릭터를 그리고 있는 모습",
+            speaker: "YUL (독백)", 
+            text: "화면 속 스즈메 언니와 소타 오빠를 보며 생각했다. '...내가 저기 있었으면.'" 
+        },
+        { 
+            ep: "PROLOGUE", 
+            imgSrc: "scene_02.png", 
+            imgGuide: "연필을 단단히 쥐고 낡은 문과 스즈메, 노란 의자를 그리고 있는 손 클로즈업.",
+            speaker: "YUL (독백)", 
+            text: "벅찬 감동을 종이 위에 남기고 싶었다. 연필을 단단히 쥐고 그림을 그려나갔다. 사각, 사각..." 
+        },
+        { 
+            ep: "PROLOGUE", 
+            imgSrc: "scene_03.png", 
+            imgGuide: "화면 가장자리부터 뽀얀 블러 효과가 들어가며 졸음이 불쑥 쏟아지는 영화적인 연출",
+            speaker: "YUL (독백)", 
+            text: "갑자기 훅 하고 따뜻한 바람이 불어왔다. 눈꺼풀이 무거워졌다. 어... 왜 이렇게 졸리지..." 
+        },
+        { 
+            ep: "PROLOGUE", 
+            imgSrc: "scene_04.png", 
+            imgGuide: "스케치북 위에 놓인 차갑고 반짝이는 진짜 열쇠와 창밖 바람",
+            speaker: "YUL (독백)", 
+            text: "눈을 떴을 때, 완성된 그림 위에 반짝이는 진짜 열쇠가 놓여 있었다. 그리고 창밖에서 들려온 목소리..." 
+        },
+
+        // EPISODE 1: 규슈 (scene_05 ~ scene_12)
+        { 
+            ep: "EPISODE 1", 
+            imgSrc: "scene_05.png", 
+            imgGuide: "규슈 온천 마을 폐허. 덩그러니 서 있는 하얀 문틈에서 붉은 안개가 새어나오는 모습",
+            speaker: "YUL", 
+            text: "안 돼, 문이 열리고 있어...! 붉은 안개가 새어 나오고 있잖아!" 
+        },
+        { 
+            ep: "EPISODE 1", 
+            imgSrc: "scene_06.png", 
+            imgGuide: "돌담 위에 사뿐히 앉아 얄밉게 웃고 있는 작은 하얀 고양이 '다이진'",
+            speaker: "다이진", 
+            text: "너는, 방해돼." 
+        },
+        { 
+            ep: "EPISODE 1", 
+            imgSrc: "scene_07.png", 
+            imgGuide: "소타가 다리 3개인 노란 유아용 의자로 변해 바닥에 떨어진 모습",
+            speaker: "YUL", 
+            text: "우와! 의자가 살아서 움직이잖아?! 소타 오빠가 의자가 된 거야?!" 
+        },
+        { 
+            ep: "EPISODE 1", 
+            imgSrc: "scene_08.png", 
+            imgGuide: "붉은 안개 속에서 사방으로 튕겨 나오는 불꽃 태엽 파편들과 결계 마법진",
+            speaker: "소타 (의자)", 
+            text: "YUL! 붉은 태엽 파편들의 정확한 개수를 알아야 결계를 칠 수 있어!" 
+        },
+        { ep: "EPISODE 1", questSlot: 0 }, // 문제 1번
+        { 
+            ep: "EPISODE 1", 
+            imgSrc: "scene_09.png", 
+            imgGuide: "연못가 쪽으로도 반짝이며 떨어진 불꽃 태엽 파편들",
+            speaker: "소타 (의자)", 
+            text: "오른쪽 연못가에도 태엽이 떨어졌어! 합친 개수를 알려줘!" 
+        },
+        { ep: "EPISODE 1", questSlot: 1 }, // 문제 2번
+        { 
+            ep: "EPISODE 1", 
+            imgSrc: "scene_10.png", 
+            imgGuide: "열쇠 구멍의 모양이 기하학적으로 빛나며 실시간으로 순환 변화하는 연출", 
+            speaker: "스즈메", 
+            text: "열쇠 구멍의 모양이 맞물리고 있어! YUL, 어서 열쇠를 꽂아!" 
+        },
+        { 
+            ep: "EPISODE 1", 
+            imgSrc: "scene_11.png", 
+            imgGuide: "열쇠를 꽂았지만 붉은 안개가 거세게 밀어내며 저항하는 아슬아슬한 순간", 
+            speaker: "스즈메", 
+            text: "안개가 너무 강하게 밀어내고 있어! YUL, 힘을 보태줘!" 
+        },
+        { 
+            ep: "EPISODE 1", 
+            imgSrc: "scene_12.png", 
+            imgGuide: "거대한 천문 마법진과 함께 규슈의 문이 굳게 닫히며 기뻐하는 세 사람", 
+            speaker: "소타 (의자)", 
+            text: "돌려드리옵나이다! ...휴, YUL 덕분에 규슈의 문을 무사히 닫았어!" 
+        },
+
+        // EPISODE 2: 시코쿠 (scene_13 ~ scene_18)
+        { 
+            ep: "EPISODE 2", 
+            imgSrc: "scene_13.png", 
+            imgGuide: "시코쿠 해안가 도로. 귤밭 소녀 치카의 스쿠터 뒤에 함께 탄 스즈메와 YUL.", 
+            speaker: "치카", 
+            text: "꽉 잡아! 폐교까지 지름길로 밟을 테니까!" 
+        },
+        { 
+            ep: "EPISODE 2", 
+            imgSrc: "scene_14.png", 
+            imgGuide: "폐교 산길 지붕 위로 도망치는 다이진과 쫓아가는 노란 의자 소타", 
+            speaker: "소타 (의자)", 
+            text: "거기 서, 다이진! 도망치지 마라!" 
+        },
+        { 
+            ep: "EPISODE 2", 
+            imgSrc: "scene_15.png", 
+            imgGuide: "폐교 교실 칠판에 다이진이 장난스럽게 그려놓은 아날로그 시계 암호", 
+            speaker: "스즈메", 
+            text: "다이진이 시계 암호를 남겼어! YUL, 네 손목시계와 비교해서 시간을 맞춰줘!" 
+        },
+        { ep: "EPISODE 2", questSlot: 2 }, // 시계 암호 1/3
+        { 
+            ep: "EPISODE 2", 
+            imgSrc: "scene_16.png", 
+            imgGuide: "폐교 강당 안. 낡은 문에서 검붉은 안개가 하늘로 치솟는 긴박한 장면", 
+            speaker: "소타 (의자)", 
+            text: "칠판 시계와 시계탑의 암호도 연속해서 풀어야 강당 문을 닫을 수 있어!" 
+        },
+        { ep: "EPISODE 2", questSlot: 3 }, // 시계 암호 2/3
+        { ep: "EPISODE 2", questSlot: 4 }, // 시계 암호 3/3
+        { 
+            ep: "EPISODE 2", 
+            imgSrc: "scene_17.png", 
+            imgGuide: "폐교 강당 안 천장을 뚫고 치솟는 미미즈를 향해 달리는 세 사람", 
+            speaker: "스즈메", 
+            text: "미미즈가 하늘로 뻗어나가고 있어! 사슬 결계를 발동시켜야 해!" 
+        },
+        { 
+            ep: "EPISODE 2", 
+            imgSrc: "scene_18.png", 
+            imgGuide: "황금빛 사슬이 문을 강제로 당겨 닫고 스즈메가 열쇠를 돌려 닫는 연출", 
+            speaker: "소타 (의자)", 
+            text: "YUL의 완벽한 시간 계산 덕분이야! 시코쿠의 재난을 막아냈어!" 
+        },
+
+        // EPISODE 3: 고베 (scene_19 ~ scene_22)
+        { 
+            ep: "EPISODE 3", 
+            imgSrc: "scene_19.png", 
+            imgGuide: "비 내리는 고베의 밤. 산속 폐유원지에서 거대한 관람차가 홀로 돌아가는 풍경", 
+            speaker: "스즈메", 
+            text: "비가 너무 거세... 저기 산꼭대기 관람차 꼭대기에 문이 있어!" 
+        },
+        { 
+            ep: "EPISODE 3", 
+            imgSrc: "scene_20.png", 
+            imgGuide: "미미즈에 감겨 90도 기울어진 관람차 칸과 아슬아슬한 상황", 
+            speaker: "스즈메", 
+            text: "칸이 기울어 떨어질 것 같아! 균형을 맞춰야 해!" 
+        },
+        { ep: "EPISODE 3", questSlot: 5 }, // 문제 6번
+        { 
+            ep: "EPISODE 3", 
+            imgSrc: "scene_21.png", 
+            imgGuide: "빗속에서 문을 닫기 위해 필사적으로 버티는 스즈메 클로즈업", 
+            speaker: "스즈메", 
+            text: "소타 씨가 없는 세상이 더 두려워! 문을 닫고 열쇠로 잠글게요!" 
+        },
+        { 
+            ep: "EPISODE 3", 
+            imgSrc: "scene_22.png", 
+            imgGuide: "비가 그치고 달빛이 비치는 고베 유원지 분수대 위의 황금 마법진", 
+            speaker: "소타 (의자)", 
+            text: "고베의 문단속 완료! 하늘이 맑게 개었어!" 
+        },
+
+        // EPISODE 4: 도쿄 (scene_23 ~ scene_25)
+        { 
+            ep: "EPISODE 4", 
+            imgSrc: "scene_23.png", 
+            imgGuide: "도쿄행 전철 안 창밖. 도쿄 하늘을 뒤덮은 거대한 재난의 그림자", 
+            speaker: "YUL (독백)", 
+            text: "도쿄의 하늘... 지금까지와는 비교도 안 될 만큼 거대한 미미즈가 솟구치고 있었다." 
+        },
+        { 
+            ep: "EPISODE 4", 
+            imgSrc: "scene_24.png", 
+            imgGuide: "도쿄 지하 깊은 공사 현장, 활짝 열린 거대한 아치형 문 너머 미미즈 핵", 
+            speaker: "스즈메", 
+            text: "여기가 도쿄의 모든 재난이 시작되는 거대한 문이야!" 
+        },
+        { ep: "EPISODE 4", questSlot: 6 }, // 문제 7번
+        { 
+            ep: "EPISODE 4", 
+            imgSrc: "scene_25.png", 
+            imgGuide: "도쿄 지하 거대한 문이 봉인되고 거친 숨을 내쉬는 스즈메와 YUL", 
+            speaker: "소타 (의자)", 
+            text: "지하 문은 잠갔지만... 미미즈 본체가 상공 10,000m 위로 솟구쳤어! 하늘로 가야 해!" 
+        },
+
+        // EPISODE 5 & 6: 상공 및 저세상 (scene_26 ~ scene_30)
+        { 
+            ep: "EPISODE 5", 
+            imgSrc: "scene_26.png", 
+            imgGuide: "도쿄 상공 10,000m 미미즈 머리 위. 소타의 몸이 하얗게 얼어붙으며 요석이 되어가는 장면", 
+            speaker: "스즈메", 
+            text: "소타 씨... 몸이 차갑게 굳어가고 있잖아... 요석이 된 거야...?" 
+        },
+        { 
+            ep: "EPISODE 5", 
+            imgSrc: "scene_27.png", 
+            imgGuide: "얼어붙어가는 소타의 손을 잡고 눈물을 흘리는 스즈메와 소타의 눈맞춤", 
+            speaker: "소타", 
+            text: "스즈메... YUL... 사람들의 내일을 부탁한다." 
+        },
+        { 
+            ep: "EPISODE 5", 
+            imgSrc: "scene_28.png", 
+            imgGuide: "스즈메가 눈물을 삼키며 차갑게 얼어붙은 요석을 미미즈 심장에 박아 넣는 순간", 
+            speaker: "스즈메", 
+            text: "소타 씨를 구하러 저세상으로 갈 거야! 반드시 되찾아올게!" 
+        },
+        { 
+            ep: "EPISODE 6", 
+            imgSrc: "scene_29.png", 
+            imgGuide: "문 너머 저세상(토코요). 해와 달이 동시에 떠 있는 고요한 언덕", 
+            speaker: "YUL (독백)", 
+            text: "모든 시간이 하나로 모여 있는 곳... 하늘에는 해와 달이 동시에 빛나고 있었다." 
+        },
+        { ep: "EPISODE 6", questSlot: 7 }, // 문제 8번
+        { 
+            ep: "EPISODE 6", 
+            imgSrc: "scene_30.png", 
+            imgGuide: "인간으로 돌아온 소타, 스즈메, YUL이 함께 열쇠를 돌려 저세상의 문을 봉인하는 신", 
+            speaker: "소타 & 스즈메 & YUL", 
+            text: "돌려드리옵나이다! 우리의 소중한 내일로!" 
+        },
+
+        // EPILOGUE (scene_31 ~ scene_32)
+        { 
+            ep: "EPILOGUE", 
+            imgSrc: "scene_31.png", 
+            imgGuide: "아침 햇살이 비치는 방 책상에서 손목시계를 차고 그림을 완성한 YUL", 
+            speaker: "YUL (독백)", 
+            text: "눈을 떴을 때, 나는 내 방 책상 앞에 앉아 있었다. 수학은 단순한 계산이 아니라 세상을 지키는 따뜻한 마법이었다." 
+        },
+        { 
+            ep: "EPILOGUE", 
+            imgSrc: "scene_32.png", 
+            imgGuide: "활짝 열린 창문 너머 푸른 들판에서 밝게 웃으며 손을 흔드는 스즈메, 소타, 다이진과 YUL", 
+            speaker: "YUL", 
+            text: "언젠가 다시 그 문이 열린다 해도, 나는 주저 없이 대답할 것이다. '다녀오겠습니다! ✨'" 
+        }
+    ];
+
+    let currentSetIndex = 0;
+    let currentIndex = 0;
+    let isQuestActive = false;
+
+    const titleScreen = document.getElementById('title-screen');
+    const setSelect = document.getElementById('set-select');
+    const epBadge = document.getElementById('ep-badge');
+    const cardBox = document.getElementById('card-box');
+    const speakerBadge = document.getElementById('speaker-badge');
+    const dialogText = document.getElementById('dialog-text');
+    const questOverlay = document.getElementById('quest-overlay');
+    const questProblem = document.getElementById('quest-problem');
+    const feedbackMsg = document.getElementById('feedback-msg');
+    const clockBox = document.getElementById('clock-box');
+    const prevBtn = document.getElementById('prev-btn');
+    const nextBtn = document.getElementById('next-btn');
+
+    function startGame() {
+        const val = setSelect.value;
+        if (val === "random") {
+            currentSetIndex = Math.floor(Math.random() * problemSets.length);
+        } else {
+            currentSetIndex = parseInt(val, 10);
+        }
+
+        titleScreen.style.opacity = '0';
+        setTimeout(() => {
+            titleScreen.style.display = 'none';
+            currentIndex = 0;
+            renderScene();
+        }, 500);
+    }
+
+    function resetToTitle() {
+        currentIndex = 0;
+        isQuestActive = false;
+        questOverlay.style.display = "none";
+        titleScreen.style.display = 'flex';
+        setTimeout(() => {
+            titleScreen.style.opacity = '1';
+        }, 50);
+    }
+
+    function handleImageError(guideText) {
+        cardBox.innerHTML = `
+            <div class="fallback-box">
+                <span class="fallback-tag">🖼️ 연출 가이드</span>
+                <div>${guideText}</div>
+            </div>
+        `;
+    }
+
+    function renderClock(hours, minutes) {
+        const hourAngle = (hours % 12 + minutes / 60) * 30;
+        const minuteAngle = minutes * 6;
+        return `
+            <svg viewBox="0 0 100 100" width="100%" height="100%">
+                <circle cx="50" cy="50" r="45" fill="#1a1b35" stroke="#ffd166" stroke-width="3"/>
+                ${[...Array(12)].map((_, i) => {
+                    const ang = (i + 1) * 30 * Math.PI / 180;
+                    const x1 = 50 + 36 * Math.sin(ang); const y1 = 50 - 36 * Math.cos(ang);
+                    return `<text x="${x1}" y="${y1}" fill="#ffd166" font-size="6" text-anchor="middle" dominant-baseline="central" font-weight="bold">${i + 1}</text>`;
+                }).join('')}
+                <line x1="50" y1="50" x2="${50 + 22 * Math.sin(hourAngle * Math.PI / 180)}" y2="${50 - 22 * Math.cos(hourAngle * Math.PI / 180)}" stroke="#ffd166" stroke-width="3.5" stroke-linecap="round"/>
+                <line x1="50" y1="50" x2="${50 + 32 * Math.sin(minuteAngle * Math.PI / 180)}" y2="${50 - 32 * Math.cos(minuteAngle * Math.PI / 180)}" stroke="#2ec4b6" stroke-width="2.5" stroke-linecap="round"/>
+                <circle cx="50" cy="50" r="3" fill="#ffd166"/>
+            </svg>
+        `;
+    }
+
+    function renderScene() {
+        const item = scriptData[currentIndex];
+        if (!item) return;
+
+        prevBtn.disabled = (currentIndex === 0);
+
+        if (currentIndex === scriptData.length - 1) {
+            nextBtn.innerText = "처음 🔄";
+            nextBtn.onclick = function(e) {
+                if (e) e.stopPropagation();
+                resetToTitle();
+            };
+        } else {
+            nextBtn.innerText = "다음 ▶";
+            nextBtn.onclick = handleNext;
+        }
+
+        if (item.ep) epBadge.innerText = `🚪 ${item.ep}`;
+
+        if (item.questSlot !== undefined) {
+            isQuestActive = true;
+            const q = problemSets[currentSetIndex][item.questSlot];
+
+            if (q.clock) {
+                clockBox.innerHTML = renderClock(q.clock.hours, q.clock.minutes);
+                clockBox.style.display = "block";
+            } else {
+                clockBox.style.display = "none";
+            }
+
+            questProblem.innerText = q.problem;
+            feedbackMsg.innerText = "";
+
+            for (let i = 0; i < 4; i++) {
+                document.getElementById(`btn${i}`).innerText = q.choices[i];
+            }
+            questOverlay.style.display = "flex";
+        } else {
+            isQuestActive = false;
+            questOverlay.style.display = "none";
+
+            if (item.imgSrc) {
+                cardBox.innerHTML = `
+                    <img src="${item.imgSrc}" 
+                         alt="Scene Image" 
+                         class="scene-image" 
+                         onerror="handleImageError('${item.imgGuide ? item.imgGuide.replace(/'/g, "\\'") : '이미지를 불러올 수 없습니다.'}')">
+                `;
+            } else {
+                handleImageError(item.imgGuide || '');
+            }
+
+            if (item.speaker) speakerBadge.innerText = item.speaker;
+            if (item.text) dialogText.innerText = item.text;
+        }
+    }
+
+    function handleNext(event) {
+        if (event) event.stopPropagation();
+        if (isQuestActive) return;
+
+        if (currentIndex === scriptData.length - 1) {
+            resetToTitle();
+            return;
+        }
+
+        if (currentIndex < scriptData.length - 1) {
+            currentIndex++;
+            renderScene();
+        }
+    }
+
+    function handlePrev(event) {
+        if (event) event.stopPropagation();
+        if (isQuestActive) return;
+        if (currentIndex > 0) {
+            currentIndex--;
+            renderScene();
+        }
+    }
+
+    function checkAnswer(selectedIndex) {
+        const slot = scriptData[currentIndex].questSlot;
+        const currentQuest = problemSets[currentSetIndex][slot];
+        if (selectedIndex === currentQuest.answer) {
+            feedbackMsg.style.color = "#ffd166";
+            feedbackMsg.innerText = currentQuest.correctMsg;
+
+            setTimeout(() => {
+                questOverlay.style.display = "none";
+                isQuestActive = false;
+                currentIndex++;
+                renderScene();
+            }, 900);
+        } else {
+            feedbackMsg.style.color = "#ffb703";
+            feedbackMsg.innerText = currentQuest.wrongMsg;
+        }
+    }
+</script>
+</body>
+</html>
