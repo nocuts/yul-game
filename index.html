@@ -172,14 +172,7 @@
         <img src="scene_00.png" class="title-bg-img" alt="Title Background" onerror="this.style.display='none'">
         <div class="title-gradient-overlay"></div>
         <div class="title-controls">
-            <select id="set-select" class="set-selector">
-                <option value="random">🎲 무작위 세트 도전</option>
-                <option value="0">📖 세트 1 (입문 코스)</option>
-                <option value="1">📖 세트 2 (기초 코스)</option>
-                <option value="2">📖 세트 3 (응용 코스)</option>
-                <option value="3">📖 세트 4 (발전 코스)</option>
-                <option value="4">📖 세트 5 (심화 코스)</option>
-            </select>
+            <select id="set-select" class="set-selector"></select>
             <button class="start-btn" onclick="startGame()">모험 시작하기 🚪✨</button>
         </div>
     </div>
@@ -224,7 +217,16 @@
 </div>
 
 <script>
-    // 총 40문제 5개 독립 세트 데이터
+    // 세트 기본 이름 메타데이터
+    const setInfo = [
+        { id: 0, title: "세트 1 (입문 코스)" },
+        { id: 1, title: "세트 2 (기초 코스)" },
+        { id: 2, title: "세트 3 (응용 코스)" },
+        { id: 3, title: "세트 4 (발전 코스)" },
+        { id: 4, title: "세트 5 (심화 코스)" }
+    ];
+
+    // 5개 세트 문제 데이터
     const problemSets = [
         // [세트 1 - 입문]
         [
@@ -505,250 +507,58 @@
     // 전체 33개 씬 시나리오 1:1 매핑
     const scriptData = [
         // PROLOGUE (scene_01 ~ scene_04)
-        { 
-            ep: "PROLOGUE", 
-            imgSrc: "scene_01.png", 
-            imgGuide: "어두운 방 안, YUL이 스탠드 불빛 아래 스케치북에 '스즈메의 문단속' 속 낡은 문과 캐릭터를 그리고 있는 모습",
-            speaker: "YUL (독백)", 
-            text: "화면 속 스즈메 언니와 소타 오빠를 보며 생각했다. '...내가 저기 있었으면.'" 
-        },
-        { 
-            ep: "PROLOGUE", 
-            imgSrc: "scene_02.png", 
-            imgGuide: "연필을 단단히 쥐고 낡은 문과 스즈메, 노란 의자를 그리고 있는 손 클로즈업.",
-            speaker: "YUL (독백)", 
-            text: "벅찬 감동을 종이 위에 남기고 싶었다. 연필을 단단히 쥐고 그림을 그려나갔다. 사각, 사각..." 
-        },
-        { 
-            ep: "PROLOGUE", 
-            imgSrc: "scene_03.png", 
-            imgGuide: "화면 가장자리부터 뽀얀 블러 효과가 들어가며 졸음이 불쑥 쏟아지는 영화적인 연출",
-            speaker: "YUL (독백)", 
-            text: "갑자기 훅 하고 따뜻한 바람이 불어왔다. 눈꺼풀이 무거워졌다. 어... 왜 이렇게 졸리지..." 
-        },
-        { 
-            ep: "PROLOGUE", 
-            imgSrc: "scene_04.png", 
-            imgGuide: "스케치북 위에 놓인 차갑고 반짝이는 진짜 열쇠와 창밖 바람",
-            speaker: "YUL (독백)", 
-            text: "눈을 떴을 때, 완성된 그림 위에 반짝이는 진짜 열쇠가 놓여 있었다. 그리고 창밖에서 들려온 목소리..." 
-        },
+        { ep: "PROLOGUE", imgSrc: "scene_01.png", imgGuide: "어두운 방 안, YUL이 스탠드 불빛 아래 스케치북에 문과 캐릭터를 그리는 모습", speaker: "YUL (독백)", text: "화면 속 스즈메 언니와 소타 오빠를 보며 생각했다. '...내가 저기 있었으면.'" },
+        { ep: "PROLOGUE", imgSrc: "scene_02.png", imgGuide: "연필을 쥐고 문과 의자를 그리는 손 클로즈업", speaker: "YUL (독백)", text: "벅찬 감동을 종이 위에 남기고 싶었다. 연필을 단단히 쥐고 그림을 그려나갔다. 사각, 사각..." },
+        { ep: "PROLOGUE", imgSrc: "scene_03.png", imgGuide: "따뜻한 바람과 함께 졸음이 쏟아지는 연출", speaker: "YUL (독백)", text: "갑자기 훅 하고 따뜻한 바람이 불어왔다. 눈꺼풀이 무거워졌다. 어... 왜 이렇게 졸리지..." },
+        { ep: "PROLOGUE", imgSrc: "scene_04.png", imgGuide: "스케치북 위에 놓인 진짜 열쇠와 창밖 바람", speaker: "YUL (독백)", text: "눈을 떴을 때, 완성된 그림 위에 반짝이는 진짜 열쇠가 놓여 있었다. 그리고 창밖에서 들려온 목소리..." },
 
         // EPISODE 1: 규슈 (scene_05 ~ scene_12)
-        { 
-            ep: "EPISODE 1", 
-            imgSrc: "scene_05.png", 
-            imgGuide: "규슈 온천 마을 폐허. 덩그러니 서 있는 하얀 문틈에서 붉은 안개가 새어나오는 모습",
-            speaker: "YUL", 
-            text: "안 돼, 문이 열리고 있어...! 붉은 안개가 새어 나오고 있잖아!" 
-        },
-        { 
-            ep: "EPISODE 1", 
-            imgSrc: "scene_06.png", 
-            imgGuide: "돌담 위에 사뿐히 앉아 얄밉게 웃고 있는 작은 하얀 고양이 '다이진'",
-            speaker: "다이진", 
-            text: "너는, 방해돼." 
-        },
-        { 
-            ep: "EPISODE 1", 
-            imgSrc: "scene_07.png", 
-            imgGuide: "소타가 다리 3개인 노란 유아용 의자로 변해 바닥에 떨어진 모습",
-            speaker: "YUL", 
-            text: "우와! 의자가 살아서 움직이잖아?! 소타 오빠가 의자가 된 거야?!" 
-        },
-        { 
-            ep: "EPISODE 1", 
-            imgSrc: "scene_08.png", 
-            imgGuide: "붉은 안개 속에서 사방으로 튕겨 나오는 불꽃 태엽 파편들과 결계 마법진",
-            speaker: "소타 (의자)", 
-            text: "YUL! 붉은 태엽 파편들의 정확한 개수를 알아야 결계를 칠 수 있어!" 
-        },
-        { ep: "EPISODE 1", questSlot: 0 }, // 문제 1번
-        { 
-            ep: "EPISODE 1", 
-            imgSrc: "scene_09.png", 
-            imgGuide: "연못가 쪽으로도 반짝이며 떨어진 불꽃 태엽 파편들",
-            speaker: "소타 (의자)", 
-            text: "오른쪽 연못가에도 태엽이 떨어졌어! 합친 개수를 알려줘!" 
-        },
-        { ep: "EPISODE 1", questSlot: 1 }, // 문제 2번
-        { 
-            ep: "EPISODE 1", 
-            imgSrc: "scene_10.png", 
-            imgGuide: "열쇠 구멍의 모양이 기하학적으로 빛나며 실시간으로 순환 변화하는 연출", 
-            speaker: "스즈메", 
-            text: "열쇠 구멍의 모양이 맞물리고 있어! YUL, 어서 열쇠를 꽂아!" 
-        },
-        { 
-            ep: "EPISODE 1", 
-            imgSrc: "scene_11.png", 
-            imgGuide: "열쇠를 꽂았지만 붉은 안개가 거세게 밀어내며 저항하는 아슬아슬한 순간", 
-            speaker: "스즈메", 
-            text: "안개가 너무 강하게 밀어내고 있어! YUL, 힘을 보태줘!" 
-        },
-        { 
-            ep: "EPISODE 1", 
-            imgSrc: "scene_12.png", 
-            imgGuide: "거대한 천문 마법진과 함께 규슈의 문이 굳게 닫히며 기뻐하는 세 사람", 
-            speaker: "소타 (의자)", 
-            text: "돌려드리옵나이다! ...휴, YUL 덕분에 규슈의 문을 무사히 닫았어!" 
-        },
+        { ep: "EPISODE 1", imgSrc: "scene_05.png", imgGuide: "규슈 온천 마을 폐허. 하얀 문틈에서 새어나오는 붉은 안개", speaker: "YUL", text: "안 돼, 문이 열리고 있어...! 붉은 안개가 새어 나오고 있잖아!" },
+        { ep: "EPISODE 1", imgSrc: "scene_06.png", imgGuide: "돌담 위에 앉아 얄밉게 웃는 고양이 다이진", speaker: "다이진", text: "너는, 방해돼." },
+        { ep: "EPISODE 1", imgSrc: "scene_07.png", imgGuide: "노란 유아용 의자로 변해버린 소타", speaker: "YUL", text: "우와! 의자가 살아서 움직이잖아?! 소타 오빠가 의자가 된 거야?!" },
+        { ep: "EPISODE 1", imgSrc: "scene_08.png", imgGuide: "사방으로 튕겨 나오는 불꽃 태엽 파편들", speaker: "소타 (의자)", text: "YUL! 붉은 태엽 파편들의 정확한 개수를 알아야 결계를 칠 수 있어!" },
+        { ep: "EPISODE 1", questSlot: 0 },
+        { ep: "EPISODE 1", imgSrc: "scene_09.png", imgGuide: "연못가 쪽에 떨어진 태엽 파편들", speaker: "소타 (의자)", text: "오른쪽 연못가에도 태엽이 떨어졌어! 합친 개수를 알려줘!" },
+        { ep: "EPISODE 1", questSlot: 1 },
+        { ep: "EPISODE 1", imgSrc: "scene_10.png", imgGuide: "기하학적으로 빛나는 열쇠 구멍", speaker: "스즈메", text: "열쇠 구멍의 모양이 맞물리고 있어! YUL, 어서 열쇠를 꽂아!" },
+        { ep: "EPISODE 1", imgSrc: "scene_11.png", imgGuide: "붉은 안개의 거센 저항", speaker: "스즈메", text: "안개가 너무 강하게 밀어내고 있어! YUL, 힘을 보태줘!" },
+        { ep: "EPISODE 1", imgSrc: "scene_12.png", imgGuide: "천문 마법진과 함께 굳게 닫힌 규슈의 문", speaker: "소타 (의자)", text: "돌려드리옵나이다! ...휴, YUL 덕분에 규슈의 문을 무사히 닫았어!" },
 
         // EPISODE 2: 시코쿠 (scene_13 ~ scene_18)
-        { 
-            ep: "EPISODE 2", 
-            imgSrc: "scene_13.png", 
-            imgGuide: "시코쿠 해안가 도로. 귤밭 소녀 치카의 스쿠터 뒤에 함께 탄 스즈메와 YUL.", 
-            speaker: "치카", 
-            text: "꽉 잡아! 폐교까지 지름길로 밟을 테니까!" 
-        },
-        { 
-            ep: "EPISODE 2", 
-            imgSrc: "scene_14.png", 
-            imgGuide: "폐교 산길 지붕 위로 도망치는 다이진과 쫓아가는 노란 의자 소타", 
-            speaker: "소타 (의자)", 
-            text: "거기 서, 다이진! 도망치지 마라!" 
-        },
-        { 
-            ep: "EPISODE 2", 
-            imgSrc: "scene_15.png", 
-            imgGuide: "폐교 교실 칠판에 다이진이 장난스럽게 그려놓은 아날로그 시계 암호", 
-            speaker: "스즈메", 
-            text: "다이진이 시계 암호를 남겼어! YUL, 네 손목시계와 비교해서 시간을 맞춰줘!" 
-        },
-        { ep: "EPISODE 2", questSlot: 2 }, // 시계 암호 1/3
-        { 
-            ep: "EPISODE 2", 
-            imgSrc: "scene_16.png", 
-            imgGuide: "폐교 강당 안. 낡은 문에서 검붉은 안개가 하늘로 치솟는 긴박한 장면", 
-            speaker: "소타 (의자)", 
-            text: "칠판 시계와 시계탑의 암호도 연속해서 풀어야 강당 문을 닫을 수 있어!" 
-        },
-        { ep: "EPISODE 2", questSlot: 3 }, // 시계 암호 2/3
-        { ep: "EPISODE 2", questSlot: 4 }, // 시계 암호 3/3
-        { 
-            ep: "EPISODE 2", 
-            imgSrc: "scene_17.png", 
-            imgGuide: "폐교 강당 안 천장을 뚫고 치솟는 미미즈를 향해 달리는 세 사람", 
-            speaker: "스즈메", 
-            text: "미미즈가 하늘로 뻗어나가고 있어! 사슬 결계를 발동시켜야 해!" 
-        },
-        { 
-            ep: "EPISODE 2", 
-            imgSrc: "scene_18.png", 
-            imgGuide: "황금빛 사슬이 문을 강제로 당겨 닫고 스즈메가 열쇠를 돌려 닫는 연출", 
-            speaker: "소타 (의자)", 
-            text: "YUL의 완벽한 시간 계산 덕분이야! 시코쿠의 재난을 막아냈어!" 
-        },
+        { ep: "EPISODE 2", imgSrc: "scene_13.png", imgGuide: "치카의 노란 스쿠터를 타고 달리는 바닷가 도로", speaker: "치카", text: "꽉 잡아! 폐교까지 지름길로 밟을 테니까!" },
+        { ep: "EPISODE 2", imgSrc: "scene_14.png", imgGuide: "기와지붕 위로 달아나는 다이진과 쫓아가는 의자 소타", speaker: "소타 (의자)", text: "거기 서, 다이진! 도망치지 마라!" },
+        { ep: "EPISODE 2", imgSrc: "scene_15.png", imgGuide: "폐교 칠판에 그려진 다이진의 비밀 시계 암호", speaker: "스즈메", text: "다이진이 시계 암호를 남겼어! YUL, 네 손목시계와 비교해서 시간을 맞춰줘!" },
+        { ep: "EPISODE 2", questSlot: 2 },
+        { ep: "EPISODE 2", imgSrc: "scene_16.png", imgGuide: "강당 문에서 솟구치는 검붉은 미미즈", speaker: "소타 (의자)", text: "칠판 시계와 시계탑의 암호도 연속해서 풀어야 강당 문을 닫을 수 있어!" },
+        { ep: "EPISODE 2", questSlot: 3 },
+        { ep: "EPISODE 2", questSlot: 4 },
+        { ep: "EPISODE 2", imgSrc: "scene_17.png", imgGuide: "천장을 뚫고 치솟는 미미즈를 향해 달리는 세 사람", speaker: "스즈메", text: "미미즈가 하늘로 뻗어나가고 있어! 사슬 결계를 발동시켜야 해!" },
+        { ep: "EPISODE 2", imgSrc: "scene_18.png", imgGuide: "황금빛 사슬로 문을 닫아 잠그는 연출", speaker: "소타 (의자)", text: "YUL의 완벽한 시간 계산 덕분이야! 시코쿠의 재난을 막아냈어!" },
 
         // EPISODE 3: 고베 (scene_19 ~ scene_22)
-        { 
-            ep: "EPISODE 3", 
-            imgSrc: "scene_19.png", 
-            imgGuide: "비 내리는 고베의 밤. 산속 폐유원지에서 거대한 관람차가 홀로 돌아가는 풍경", 
-            speaker: "스즈메", 
-            text: "비가 너무 거세... 저기 산꼭대기 관람차 꼭대기에 문이 있어!" 
-        },
-        { 
-            ep: "EPISODE 3", 
-            imgSrc: "scene_20.png", 
-            imgGuide: "미미즈에 감겨 90도 기울어진 관람차 칸과 아슬아슬한 상황", 
-            speaker: "스즈메", 
-            text: "칸이 기울어 떨어질 것 같아! 균형을 맞춰야 해!" 
-        },
-        { ep: "EPISODE 3", questSlot: 5 }, // 문제 6번
-        { 
-            ep: "EPISODE 3", 
-            imgSrc: "scene_21.png", 
-            imgGuide: "빗속에서 문을 닫기 위해 필사적으로 버티는 스즈메 클로즈업", 
-            speaker: "스즈메", 
-            text: "소타 씨가 없는 세상이 더 두려워! 문을 닫고 열쇠로 잠글게요!" 
-        },
-        { 
-            ep: "EPISODE 3", 
-            imgSrc: "scene_22.png", 
-            imgGuide: "비가 그치고 달빛이 비치는 고베 유원지 분수대 위의 황금 마법진", 
-            speaker: "소타 (의자)", 
-            text: "고베의 문단속 완료! 하늘이 맑게 개었어!" 
-        },
+        { ep: "EPISODE 3", imgSrc: "scene_19.png", imgGuide: "비 내리는 밤, 홀로 돌아가는 산꼭대기 폐유원지 관람차", speaker: "스즈메", text: "비가 너무 거세... 저기 산꼭대기 관람차 꼭대기에 문이 있어!" },
+        { ep: "EPISODE 3", imgSrc: "scene_20.png", imgGuide: "미미즈에 감겨 90도 기울어진 관람차 칸", speaker: "스즈메", text: "칸이 기울어 떨어질 것 같아! 균형을 맞춰야 해!" },
+        { ep: "EPISODE 3", questSlot: 5 },
+        { ep: "EPISODE 3", imgSrc: "scene_21.png", imgGuide: "빗속에서 문을 닫기 위해 필사적으로 버티는 스즈메", speaker: "스즈메", text: "소타 씨가 없는 세상이 더 두려워! 문을 닫고 열쇠로 잠글게요!" },
+        { ep: "EPISODE 3", imgSrc: "scene_22.png", imgGuide: "비가 갠 후 고베 유원지 분수대 위에 완성된 황금 마법진", speaker: "소타 (의자)", text: "고베의 문단속 완료! 하늘이 맑게 개었어!" },
 
         // EPISODE 4: 도쿄 (scene_23 ~ scene_25)
-        { 
-            ep: "EPISODE 4", 
-            imgSrc: "scene_23.png", 
-            imgGuide: "도쿄행 전철 안 창밖. 도쿄 하늘을 뒤덮은 거대한 재난의 그림자", 
-            speaker: "YUL (독백)", 
-            text: "도쿄의 하늘... 지금까지와는 비교도 안 될 만큼 거대한 미미즈가 솟구치고 있었다." 
-        },
-        { 
-            ep: "EPISODE 4", 
-            imgSrc: "scene_24.png", 
-            imgGuide: "도쿄 지하 깊은 공사 현장, 활짝 열린 거대한 아치형 문 너머 미미즈 핵", 
-            speaker: "스즈메", 
-            text: "여기가 도쿄의 모든 재난이 시작되는 거대한 문이야!" 
-        },
-        { ep: "EPISODE 4", questSlot: 6 }, // 문제 7번
-        { 
-            ep: "EPISODE 4", 
-            imgSrc: "scene_25.png", 
-            imgGuide: "도쿄 지하 거대한 문이 봉인되고 거친 숨을 내쉬는 스즈메와 YUL", 
-            speaker: "소타 (의자)", 
-            text: "지하 문은 잠갔지만... 미미즈 본체가 상공 10,000m 위로 솟구쳤어! 하늘로 가야 해!" 
-        },
+        { ep: "EPISODE 4", imgSrc: "scene_23.png", imgGuide: "도쿄행 전철 안 창밖, 도쿄를 뒤덮은 거대한 재난", speaker: "YUL (독백)", text: "도쿄의 하늘... 지금까지와는 비교도 안 될 만큼 거대한 미미즈가 솟구치고 있었다." },
+        { ep: "EPISODE 4", imgSrc: "scene_24.png", imgGuide: "도쿄 지하 깊은 공사 현장, 거대한 아치형 문 너머 미미즈", speaker: "스즈메", text: "여기가 도쿄의 모든 재난이 시작되는 거대한 문이야!" },
+        { ep: "EPISODE 4", questSlot: 6 },
+        { ep: "EPISODE 4", imgSrc: "scene_25.png", imgGuide: "지하 거대 문 봉인 후 거친 숨을 내쉬는 주인공들", speaker: "소타 (의자)", text: "지하 문은 잠갔지만... 미미즈 본체가 상공 10,000m 위로 솟구쳤어! 하늘로 가야 해!" },
 
         // EPISODE 5 & 6: 상공 및 저세상 (scene_26 ~ scene_30)
-        { 
-            ep: "EPISODE 5", 
-            imgSrc: "scene_26.png", 
-            imgGuide: "도쿄 상공 10,000m 미미즈 머리 위. 소타의 몸이 하얗게 얼어붙으며 요석이 되어가는 장면", 
-            speaker: "스즈메", 
-            text: "소타 씨... 몸이 차갑게 굳어가고 있잖아... 요석이 된 거야...?" 
-        },
-        { 
-            ep: "EPISODE 5", 
-            imgSrc: "scene_27.png", 
-            imgGuide: "얼어붙어가는 소타의 손을 잡고 눈물을 흘리는 스즈메와 소타의 눈맞춤", 
-            speaker: "소타", 
-            text: "스즈메... YUL... 사람들의 내일을 부탁한다." 
-        },
-        { 
-            ep: "EPISODE 5", 
-            imgSrc: "scene_28.png", 
-            imgGuide: "스즈메가 눈물을 삼키며 차갑게 얼어붙은 요석을 미미즈 심장에 박아 넣는 순간", 
-            speaker: "스즈메", 
-            text: "소타 씨를 구하러 저세상으로 갈 거야! 반드시 되찾아올게!" 
-        },
-        { 
-            ep: "EPISODE 6", 
-            imgSrc: "scene_29.png", 
-            imgGuide: "문 너머 저세상(토코요). 해와 달이 동시에 떠 있는 고요한 언덕", 
-            speaker: "YUL (독백)", 
-            text: "모든 시간이 하나로 모여 있는 곳... 하늘에는 해와 달이 동시에 빛나고 있었다." 
-        },
-        { ep: "EPISODE 6", questSlot: 7 }, // 문제 8번
-        { 
-            ep: "EPISODE 6", 
-            imgSrc: "scene_30.png", 
-            imgGuide: "인간으로 돌아온 소타, 스즈메, YUL이 함께 열쇠를 돌려 저세상의 문을 봉인하는 신", 
-            speaker: "소타 & 스즈메 & YUL", 
-            text: "돌려드리옵나이다! 우리의 소중한 내일로!" 
-        },
+        { ep: "EPISODE 5", imgSrc: "scene_26.png", imgGuide: "도쿄 상공 10,000m, 얼어붙어 요석이 되어가는 소타", speaker: "스즈메", text: "소타 씨... 몸이 차갑게 굳어가고 있잖아... 요석이 된 거야...?" },
+        { ep: "EPISODE 5", imgSrc: "scene_27.png", imgGuide: "요석이 되어가는 소타와 눈물 흘리는 스즈메", speaker: "소타", text: "스즈메... YUL... 사람들의 내일을 부탁한다." },
+        { ep: "EPISODE 5", imgSrc: "scene_28.png", imgGuide: "얼어붙은 요석을 미미즈 심장에 꽂아 넣는 스즈메", speaker: "스즈메", text: "소타 씨를 구하러 저세상으로 갈 거야! 반드시 되찾아올게!" },
+        { ep: "EPISODE 6", imgSrc: "scene_29.png", imgGuide: "해와 달이 동시에 뜬 저세상(토코요)의 언덕", speaker: "YUL (독백)", text: "모든 시간이 하나로 모여 있는 곳... 하늘에는 해와 달이 동시에 빛나고 있었다." },
+        { ep: "EPISODE 6", questSlot: 7 },
+        { ep: "EPISODE 6", imgSrc: "scene_30.png", imgGuide: "소타, 스즈메, YUL이 함께 열쇠로 문을 영구 봉인하는 신", speaker: "소타 & 스즈메 & YUL", text: "돌려드리옵나이다! 우리의 소중한 내일로!" },
 
         // EPILOGUE (scene_31 ~ scene_32)
-        { 
-            ep: "EPILOGUE", 
-            imgSrc: "scene_31.png", 
-            imgGuide: "아침 햇살이 비치는 방 책상에서 손목시계를 차고 그림을 완성한 YUL", 
-            speaker: "YUL (독백)", 
-            text: "눈을 떴을 때, 나는 내 방 책상 앞에 앉아 있었다. 수학은 단순한 계산이 아니라 세상을 지키는 따뜻한 마법이었다." 
-        },
-        { 
-            ep: "EPILOGUE", 
-            imgSrc: "scene_32.png", 
-            imgGuide: "활짝 열린 창문 너머 푸른 들판에서 밝게 웃으며 손을 흔드는 스즈메, 소타, 다이진과 YUL", 
-            speaker: "YUL", 
-            text: "언젠가 다시 그 문이 열린다 해도, 나는 주저 없이 대답할 것이다. '다녀오겠습니다! ✨'" 
-        }
+        { ep: "EPILOGUE", imgSrc: "scene_31.png", imgGuide: "아침 방 안 책상에서 그림을 완성한 YUL", speaker: "YUL (독백)", text: "눈을 떴을 때, 나는 내 방 책상 앞에 앉아 있었다. 수학은 단순한 계산이 아니라 세상을 지키는 따뜻한 마법이었다." },
+        { ep: "EPILOGUE", imgSrc: "scene_32.png", imgGuide: "창문 너머 푸른 들판에서 손을 흔드는 스즈메, 소타, 다이진", speaker: "YUL", text: "언젠가 다시 그 문이 열린다 해도, 나는 주저 없이 대답할 것이다. '다녀오겠습니다! ✨'" }
     ];
 
     let currentSetIndex = 0;
@@ -767,6 +577,38 @@
     const clockBox = document.getElementById('clock-box');
     const prevBtn = document.getElementById('prev-btn');
     const nextBtn = document.getElementById('next-btn');
+
+    // 세트 완료 여부 로컬 스토리지 키
+    const STORAGE_KEY = "yul_math_cleared_sets";
+
+    function getClearedSets() {
+        try {
+            const data = localStorage.getItem(STORAGE_KEY);
+            return data ? JSON.parse(data) : [];
+        } catch (e) {
+            return [];
+        }
+    }
+
+    function saveClearedSet(setId) {
+        const cleared = getClearedSets();
+        if (!cleared.includes(setId)) {
+            cleared.push(setId);
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(cleared));
+        }
+    }
+
+    // 드롭다운 옵션 갱신 (완료된 세트에 ✅ 뱃지 표시)
+    function updateSetSelector() {
+        const cleared = getClearedSets();
+        let html = '<option value="random">🎲 무작위 세트 도전</option>';
+        setInfo.forEach(info => {
+            const isDone = cleared.includes(info.id);
+            const checkMark = isDone ? " ✅ (완료)" : "";
+            html += `<option value="${info.id}">📖 ${info.title}${checkMark}</option>`;
+        });
+        setSelect.innerHTML = html;
+    }
 
     function startGame() {
         const val = setSelect.value;
@@ -788,6 +630,7 @@
         currentIndex = 0;
         isQuestActive = false;
         questOverlay.style.display = "none";
+        updateSetSelector(); // 완료 상태 재반영
         titleScreen.style.display = 'flex';
         setTimeout(() => {
             titleScreen.style.opacity = '1';
@@ -827,7 +670,9 @@
 
         prevBtn.disabled = (currentIndex === 0);
 
+        // 엔딩 씬(마지막) 도달 시 세트 클리어 기록 저장 및 버튼 전환
         if (currentIndex === scriptData.length - 1) {
+            saveClearedSet(currentSetIndex);
             nextBtn.innerText = "처음 🔄";
             nextBtn.onclick = function(e) {
                 if (e) e.stopPropagation();
@@ -920,6 +765,9 @@
             feedbackMsg.innerText = currentQuest.wrongMsg;
         }
     }
+
+    // 초기 실행 시 드롭다운 렌더링
+    updateSetSelector();
 </script>
 </body>
 </html>
